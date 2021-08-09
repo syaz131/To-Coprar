@@ -13,7 +13,10 @@
 
     <!-- Test Try Place -->
     <?php
-        //http://localhost/8000/
+        //http://localhost/3000/
+        //ssh -R 80:localhost:3000 plan@localhost.run
+        //https://68f204ac146f5a.localhost.run/
+
         require 'vendor/autoload.php';
         use PhpOffice\PhpSpreadsheet\Spreadsheet;
         use PhpOffice\PhpSpreadsheet\Writer\Xlsx; 
@@ -21,17 +24,18 @@
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx(); //ignore warning
         $spreadsheet = $reader->load("sample.xlsx");
         $d=$spreadsheet->getSheet(0)->toArray();
+        
+        echo "Hello Piee";
         echo "\n";
         echo count($d); 
-
     ?>
 
     <div class="container">
         <br/>
         <form class="container">
-            <div class="card" style="">
-                <div class="jumbotron">
-                    <h2><span><img src="cart.png" alt="Cart Icon" width="75" height="75" style="margin-right: 20px;"></span>Export Booking Excel to Coprar Converter</h2>
+            <div class="card">
+                <div class="jumbotron text-center" >
+                    <h2><span><img src="cart.png" alt="Cart Icon" width="75" height="75" style="margin-right: 25px;"></span>Export Booking Excel to Coprar Converter</h2>
                 </div>
 
                 <div class="card-body">
