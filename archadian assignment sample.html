@@ -47,6 +47,8 @@
                     var vslname = "";
                     var callsign = "";
                     var opr = "";
+                    //suspecting prob here
+                    console.log("allRows.length", allRows.length)
                     for (var singleRow = 0; singleRow < allRows.length; singleRow++) {
                         if (singleRow > 6) break;
                         let rowCells = allRows[singleRow].split(',');
@@ -78,6 +80,8 @@
                     line++;
                     let tmp;
                     let dim;
+                    // suspecting prob here
+                    console.log("allRows.length", allRows.length)
                     for (singleRow = 0; singleRow < allRows.length; singleRow++) {
                         if (typeof allRows[singleRow] != "undefined") {
                             //let rowCells = allRows[singleRow].split(',');
