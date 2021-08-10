@@ -128,7 +128,7 @@
                             if (isset($rowCells[17]) && trim($rowCells[17]) != "" && trim($rowCells[17]) != "/") {
                                 $tmp = explode(",", $rowCells[17]);
                                 for ($i = 0; $i < count($tmp); $i++) {
-                                    $dim = explode(",", $rowCells[17]);
+                                    $dim = explode("/", $rowCells[17]);
                                     if (trim($dim[0]) == "OF") {
                                         $edi .= "DIM+5+CMT:". trim($dim[1]). "'\n";
                                         $line++;
