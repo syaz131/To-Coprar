@@ -26,11 +26,17 @@
         
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx(); //ignore warning
         $spreadsheet = $reader->load("sample.xlsx");
-        $d=$spreadsheet->getSheet(0)->toArray();
+        $allRows=$spreadsheet->getSheet(0)->toArray();
         
         if (isset($_SERVER["REQUEST_METHOD"]) && ($_SERVER["REQUEST_METHOD"] == "POST")) {
             $receiver_code = test_input($_POST["receiver_code"]);
             $callsign_code = test_input($_POST["callsign_code"]);
+            
+            $file = $_FILES["file"]["name"];
+            $file = $_FILES["file"]["tmp_name"];
+            echo "</br>--------</br>";
+            echo $file;
+            echo "</br>--------</br>";
         }
         
         function test_input($data) {
@@ -51,11 +57,11 @@
         
         //Process Header
         $report_dt = $voyage = $vslname = $callsign = $opr = "";
-        $numRow = count($d);
+        $numRow = count($allRows);
 
         for ($singleRow=0; $singleRow<$numRow; $singleRow++){
             if ($singleRow > 6) break;
-            $rowCells = $d[$singleRow];
+            $rowCells = $allRows[$singleRow];
             
             if ($singleRow == 1) {
                 $tmpdt = explode("/", $rowCells[1]);
@@ -87,8 +93,8 @@
 
         $tmp = $dim = "";
         for ($singleRow=0; $singleRow<$numRow; $singleRow++){
-            if (isset($d[$singleRow])) {
-                $rowCells = $d[$singleRow];
+            if (isset($allRows[$singleRow])) {
+                $rowCells = $allRows[$singleRow];
 
                 if ($singleRow > 7) {
                     $contcount++;
@@ -151,6 +157,7 @@
                             }
                         }
                     }
+
                     if (isset($rowCells[15]) && trim($rowCells[15]) != "" && trim($rowCells[15]) != "/") {
                         $temperature = $rowCells[15];
                         $temperature = str_replace(" ", "", $temperature);
@@ -174,13 +181,13 @@
                             $line++; //seal L - CA, S - SH, M - CU
                         }
                     }
+
                     if (isset($rowCells[8])) {
                         $edi .= "FTX+AAI+++".  $rowCells[8].  "'\n";
                         $line++;
                     }
-
                     if (isset($rowCells[12]) && trim($rowCells[12]) != "" && trim($rowCells[12]) != "/") {
-                        $edi .= "FTX+AAA+++".  trim($rowCells[12]).   "'\n"; //cleanString not found
+                        $edi .= "FTX+AAA+++".  trim(cleanString($rowCells[12])).   "'\n";
                         $line++;
                     }
                     if (isset($rowCells[18]) && trim($rowCells[18]) != "" && trim($rowCells[18]) != "/") {
@@ -231,13 +238,23 @@
                 return $hrs.$min;
             else
                 return $yr.$mth.$dt.$hrs.$min.$sec;
-        }    
+        }
+
+        function cleanString($input) {
+            $output = "";
+            for ($i = 0; $i < strlen($input); $i++) {
+                if (ord($input) <= 127) {
+                    $output .= $input[$i];
+                }
+            }
+            return $output;
+        }
     ?>
 
 
 <div class="container">
     <br/>
-    <form role="form" class="container" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+    <form role="form" class="container" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data">
         <div class="card">
             <div class="jumbotron text-center" >
                 <h2><span><img src="cart.png" alt="Cart Icon" width="75" height="75" style="margin-right: 25px;"></span>Export Booking Excel to Coprar Converter</h2>
@@ -257,17 +274,11 @@
                     <br/>
 
                     <!-- Upload excel file -->
-                    <!-- <div>Export booking excel file:</div>
-                    <a href="sample.xlsx" download>sample.xlsx</a>
-                    <div><button type="submit" class="btn btn-primary">Submit</button></div>
-                    </div> -->
-
                     <div>
-                        <!-- <label>Choose Excel File: </label> <input type="file" name="file" id="file" accept=".xls,.xlsx"> -->
+                        <label>Choose Excel File: </label></br><input type="file" name="file" id="file" accept=".xls,.xlsx"></br></br>
                         <button type="submit" id="submit" name="submit" class="btn btn-primary">Submit</button>
                     </div>
-                    </br>
-                    </br>
+                    </br></br>
                     <label for="file_output">COPRAR EDI Result:</label>
                     <div class="form-group"><textarea class="form-control" rows="12" cols="20" id='file_output' name="file_output"><?php echo $file_output ; ?></textarea></div>
             </div>
@@ -278,93 +289,6 @@
             <p> Muhammad Syazwan | August 2021 | Source Code: <a href="https://github.com/syaz131/To-Coprar" target="_blank"><i class="fa fa-github"></i> To Coprar</a> | <a href="https://westports.github.io/ETP/" target="_blank">To Coprar JS Vers</a></p>
         </div>
     </footer>
-
-    
-
-    <!-- Upload Excel File  -->
-    <?php
-    // use Phppot\DataSource;
-    // use PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-
-    // require_once 'DataSource.php';
-    // $db = new DataSource();
-    // $conn = $db->getConnection();
-    // require_once ('./vendor/autoload.php');
-
-    // if ($_SERVER["REQUEST_METHOD"] == "POST"){
-    //     if (empty($_POST["receiver_code"]))
-    //     {    $recvErr = "Receiver code is required";}
-        
-    //     else 
-    //       {  $receiver_code = $_POST["receiver_code"];}
-        
-    // }    
-
-    //=================================
-
-    // if (isset($_POST["submit"])) {
-
-
-    //     echo $receiver_code;
-    //     echo $callsign_code;
-
-    //     $allowedFileType = [
-    //         'application/vnd.ms-excel',
-    //         'text/xls',
-    //         'text/xlsx',
-    //         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    //     ];
-
-    //     if (in_array($_FILES["file"]["type"], $allowedFileType)) {
-
-    //         $targetPath = 'uploads/' . $_FILES['file']['name'];
-    //         move_uploaded_file($_FILES['file']['tmp_name'], $targetPath);
-
-    //         $Reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-
-    //         $spreadSheet = $Reader->load($targetPath);
-    //         $excelSheet = $spreadSheet->getActiveSheet();
-    //         $spreadSheetAry = $excelSheet->toArray();
-    //         $sheetCount = count($spreadSheetAry);
-
-    //         for ($i = 0; $i <= $sheetCount; $i ++) {
-    //             $name = "";
-    //             if (isset($spreadSheetAry[$i][0])) {
-    //                 $name =  $spreadSheetAry[$i][0];
-    //             }
-    //             $description = "";
-    //             if (isset($spreadSheetAry[$i][1])) {
-    //                 $description =  $spreadSheetAry[$i][1];
-    //             }
-
-    //             if (! empty($name) || ! empty($description)) {
-    //                 // $query = "insert into tbl_info(name,description) values(?,?)";
-    //                 // $paramType = "ss";
-    //                 // $paramArray = array(
-    //                 //     $name,
-    //                 //     $description
-    //                 // );
-    //                 // $insertId = $db->insert($query, $paramType, $paramArray);
-    //                 // $query = "insert into tbl_info(name,description) values('" . $name . "','" . $description . "')";
-    //                 // $result = mysqli_query($conn, $query);
-    //                 $insertId = 1;
-
-    //                 if (! empty($insertId)) {
-    //                     $type = "success";
-    //                     $message = "Excel Data Imported into the Database";
-    //                 } else {
-    //                     $type = "error";
-    //                     $message = "Problem in Importing Excel Data";
-    //                 }
-    //             }
-    //         }
-    //     } else {
-    //         $type = "error";
-    //         $message = "Invalid File Type. Upload Excel File.";
-    //     }
-    // }
-    ?>
-
 </body>
 
 </html>
