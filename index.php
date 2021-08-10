@@ -20,7 +20,7 @@
         require 'vendor/autoload.php';
         use PhpOffice\PhpSpreadsheet\Spreadsheet;
         use PhpOffice\PhpSpreadsheet\Writer\Xlsx; 
-        $reciever_code = "RECIEVER";
+        $receiver_code = "RECEIVER";
         $callsign_code = "CALLSIGN";
         $file_output = "Output";
 
@@ -32,7 +32,7 @@
         
 
         if (isset($_SERVER["REQUEST_METHOD"]) && ($_SERVER["REQUEST_METHOD"] == "POST")) {
-            $reciever_code = test_input($_POST["reciever_code"]);
+            $receiver_code = test_input($_POST["receiver_code"]);
             $callsign_code = test_input($_POST["callsign_code"]);
             // echo $file_output." hi"."</br>";
         }
@@ -83,8 +83,8 @@
                 <div class="card-body">
                     <!-- Receiver and Callsign Code-->
                     <div class="form-group">
-                        <label for="reciever_code">Receiver Code:</label>
-                        <input class="form-control" id="reciever_code" name="reciever_code" type="text" placeholder="Enter Receiver Code" value="<?php echo $reciever_code;?>">
+                        <label for="receiver_code">Receiver Code:</label>
+                        <input class="form-control" id="receiver_code" name="receiver_code" type="text" placeholder="Enter Receiver Code" value="<?php echo $receiver_code;?>">
                     </div>
                     <br/>
                     <div class="form-group">
@@ -105,7 +105,7 @@
                     </div>
                     </br>
 
-                    <div class="form-group"><textarea class="form-control" rows="10" cols="20" id='file_output' name="file_output"><?php echo $file_output ; ?></textarea></div>
+                    <!-- <div class="form-group"><textarea class="form-control" rows="10" cols="20" id='file_output' name="file_output"><?php echo $file_output ; ?></textarea></div> -->
             </div>
         </form>
     </div>
@@ -119,21 +119,170 @@
     <?php
         $line = $contcount = 0;
         $refno = get_date_str("");
-        $edi = "UNB+UNOA:2+KMT+". $reciever_code. "+". get_date_str("daterawonly"). ":". get_date_str("timetominrawonly"). "+". $refno. "'\n";
+        $edi = "UNB+UNOA:2+KMT+". $receiver_code. "+". get_date_str("daterawonly"). ":". get_date_str("timetominrawonly"). "+". $refno. "'\n";
         $edi .= "UNH+". $refno. "+COPRAR:D:00B:UN:SMDG21+LOADINGCOPRAR'\n";
         $line++;
         
-        echo $edi;
-        echo "</br>---------- </br>";
-        echo $line;
-        echo "</br>----------</br> ";
-
         //Process Header
         $report_dt = $voyage = $vslname = $callsign = $opr = "";
+        $numRow = count($d);
 
+        for ($singleRow=0; $singleRow<$numRow; $singleRow++){
+            if ($singleRow > 6) break;
+            $rowCells = $d[$singleRow];
+            
+            if ($singleRow == 1) {
+                $tmpdt = explode("/", $rowCells[1]);
+                $day = $tmpdt[0];
+                $month = $tmpdt[1];
+                $tmpyear = explode(" ", $tmpdt[2]) ;
+                $report_date = $tmpyear[0]. "-". $month. "-". $day. " ". $tmpyear[1];
+                $report_dt = get_date_str($report_date, "");
+            }
+            if ($singleRow == 3) {
+                if (isset($rowCells[3])) {
+                    $tmp = explode("/", $rowCells[3]);
+                    $voyage = $tmp[0];
+                    $callsign = $tmp[1];
+                    $opr = $tmp[2];
+                    $vslname = $rowCells[1];
 
+                }
+            }
+        }
+        $edi .= "BGM+45+". $report_dt. "+5'\n";
+        $line++;
+        $edi .= "TDT+20+". $voyage. "+1++172:". $opr. "+++". $callsign_code. ":103::". $vslname. "'\n";
+        $line++;
+        $edi .= "RFF+VON:". $voyage. "'\n";
+        $line++;
+        $edi .= "NAD+CA+". $opr. "'\n";
+        $line++;
 
+        $tmp = $dim = "";
+        for ($singleRow=0; $singleRow<$numRow; $singleRow++){
+            if (isset($d[$singleRow])) {
+                $rowCells = $d[$singleRow];
+                
+                if ($singleRow > 7) {
+                    $contcount++;
+                    
+                    $fe ="5";
+                    if (isset($rowCells[3]) && $rowCells[3] =="E")
+                        $fe = "4";
+                    
+                    $type = "2";
+                    if (isset($rowCells[11]) && $rowCells[11] =="Y")
+                        $type = "6";
 
+                    if (isset($rowCells[1]) && isset($rowCells[7])) {
+                        $edi .= "EQD+CN+". $rowCells[1]. "+". $rowCells[7]. ":102:5++". $type. "+". $fe. "'\n";
+                        $line++;
+                    }
+                    
+                    //might be rowCells[5]
+                    if ($rowCells[6]) {
+                        $edi .= "LOC+11+". $rowCells[5]. ":139:6'\n";
+                        $line++;
+                    }
+                    if ($rowCells[6]) {
+                        $edi .= "LOC+7+". $rowCells[6]. ":139:6'\n";
+                        $line++;
+                    }
+                    if ($rowCells[19]) {
+                        $edi .= "LOC+9+". $rowCells[19]. ":139:6'\n";
+                        $line++;
+                    }
+                    if ($rowCells[13]) {
+                        $edi .= "MEA+AAE+VGM+KGM:". $rowCells[13]. "'\n";
+                        $line++;
+                    }
+
+                    if (isset($rowCells[17]) && trim($rowCells[17]) != "" && trim($rowCells[17]) != "/") {
+                        $tmp = explode(",", $rowCells[17]);
+                        for ($i = 0; $i < count($tmp); $i++) {
+                            $dim = explode(",", $rowCells[17]);
+                            if (trim($dim[0]) == "OF") {
+                                $edi .= "DIM+5+CMT:". trim($dim[1]). "'\n";
+                                $line++;
+                            }
+                            if (trim($dim[0]) == "OB") {
+                                $edi .= "DIM+6+CMT:". trim($dim[1]). "'\n";
+                                $line++;
+                            }
+                            if (trim($dim[0]) == "OR") {
+                                $edi .= "DIM+7+CMT::". trim($dim[1]). "'\n";
+                                $line++;
+                            }
+                            if (trim($dim[0]) == "OL") {
+                                $edi .= "DIM+8+CMT::". trim($dim[1]). "'\n";
+                                $line++;
+                            }
+                            //bug DIM+9+CMT:::20' Not Found
+                            if (trim($dim[0]) == "OH") {
+                                $edi .= "DIM+9+CMT:::". trim($dim[1]). "'\n";
+                                $line++;
+                            }
+                        }
+                    }
+                    if (isset($rowCells[15]) && trim($rowCells[15]) != "" && trim($rowCells[15]) != "/") {
+                        $temperature = $rowCells[15];
+                        $temperature = str_replace(" ", "", $temperature);
+                        $temperature = str_replace("C", "", $temperature);
+                        $temperature = str_replace("+", "", $temperature);
+                        $edi .= "TMP+2+".  $temperature.  ":CEL'\n";
+                        $line++;
+                    }
+                    if (isset($rowCells[25]) && trim($rowCells[25]) != "" && trim($rowCells[25]) != "/") {
+                        $tmp = explode(",", $rowCells[25]);
+                        if ($tmp[0] == "L") {
+                            $edi .= "SEL+". $tmp[1]. "+CA'\n";
+                            $line++; //seal L - CA, S - SH, M - CU
+                        }
+                        if ($tmp[0] == "S") {
+                            $edi .= "SEL+". $tmp[1]. "+SH'\n";
+                            $line++; //seal L - CA, S - SH, M - CU
+                        }
+                        if ($tmp[0] == "M") {
+                            $edi .= "SEL+". $tmp[1]. "+CU'\n";
+                            $line++; //seal L - CA, S - SH, M - CU
+                        }
+                    }
+                    if (isset($rowCells[8])) {
+                        $edi .= "FTX+AAI+++".  $rowCells[8].  "'\n";
+                        $line++;
+                    }
+
+                    if (isset($rowCells[12]) && trim($rowCells[12]) != "" && trim($rowCells[12]) != "/") {
+                        $edi .= "FTX+AAA+++".  trim($rowCells[12]).   "'\n"; //cleanString not found
+                        $line++;
+                    }
+                    if (isset($rowCells[18]) && trim($rowCells[18]) != "" && trim($rowCells[18]) != "/") {
+                        $edi .= "FTX+HAN++".  $rowCells[18].  "'\n";
+                        $line++;
+                    }
+                    if (isset($rowCells[14]) && $rowCells[14] != "" && trim($rowCells[14]) != "/") {
+                        $tmp = explode("/",$rowCells[14]);
+                        $edi .= "DGS+IMD+".  $tmp[0].  "+".  $tmp[1].  "'\n";
+                        $line++;
+                    }
+                    if (isset($rowCells[2]) && trim($rowCells[2]) != "") {
+                        $edi .= "NAD+CF+".  $rowCells[2].  ":160:ZZZ'\n";
+                        $line++;
+                    }
+                    
+                }
+            }
+        }
+        $contcount--;
+        $edi .= "CNT+16:". $contcount. "'\n";
+        $line++;
+        $line++;
+        $edi .= "UNT+". $line. "+". $refno."'\n";
+        $edi .= "UNZ+1+". $refno. "'";
+
+        //Final Output
+        $file_output = $edi;
 
         function get_date_str($type) {
             $now = getdate(date("U"));
@@ -156,26 +305,11 @@
                 return $hrs.$min;
             else
                 return $yr.$mth.$dt.$hrs.$min.$sec;
-
-        }     
-        
-        // $now = getdate(date("U"));
-        // echo $now["mday"]."</br>";
-        // echo $now["hours"]."</br>";
-        // echo $now["minutes"]."</br>";
-        // echo $now["seconds"]."</br>";
-        // echo $now["mon"]."</br>";
-        // echo $now["year"]."</br>";
-
-        // echo "---------- </br>";
-        // $dt = $now["mday"];
-        // $dt = (strlen(strval($dt)) < 2) ? "0". strval($dt): strval($dt);
-        // echo gettype($dt).$dt ;
-
+        }    
     ?>
 
 
-
+<div class="form-group"><textarea class="form-control" rows="10" cols="20" id='file_output' name="file_output"><?php echo $file_output ; ?></textarea></div>
 
     <!-- Upload Excel File  -->
     <?php
@@ -188,16 +322,17 @@
     // require_once ('./vendor/autoload.php');
 
     // if ($_SERVER["REQUEST_METHOD"] == "POST"){
-    //     if (empty($_POST["reciever_code"]))
-    //     {    $recvErr = "Reciever code is required";}
+    //     if (empty($_POST["receiver_code"]))
+    //     {    $recvErr = "Receiver code is required";}
         
     //     else 
-    //       {  $reciever_code = $_POST["receiver_code"];}
+    //       {  $receiver_code = $_POST["receiver_code"];}
         
     // }
+    
 
     echo "<h4>Your Input:</h4>";
-    echo $reciever_code;
+    echo $receiver_code;
     echo "</br>";
     echo $callsign_code;
 
@@ -208,7 +343,7 @@
     // if (isset($_POST["submit"])) {
 
 
-    //     echo $reciever_code;
+    //     echo $receiver_code;
     //     echo $callsign_code;
 
     //     $allowedFileType = [
