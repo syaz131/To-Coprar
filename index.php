@@ -1,122 +1,48 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coprar Converter</title>
-    <link rel="icon" type="image/png" href="cart.png" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-
-<body>
-
-    <!-- Test Try Place -->
-    <?php
+    
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Coprar Converter</title>
+        <link rel="icon" type="image/png" href="cart.png" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    </head>
+    
+    <body>
+        
+        <!-- Declare Variables -->
+        <?php
         //http://localhost/3000/
         //ssh -R 80:localhost:3000 plan@localhost.run
         //https://68f204ac146f5a.localhost.run/
-
+        
         require 'vendor/autoload.php';
         use PhpOffice\PhpSpreadsheet\Spreadsheet;
         use PhpOffice\PhpSpreadsheet\Writer\Xlsx; 
         $receiver_code = "RECEIVER";
         $callsign_code = "CALLSIGN";
         $file_output = "Output";
-
         
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx(); //ignore warning
         $spreadsheet = $reader->load("sample.xlsx");
         $d=$spreadsheet->getSheet(0)->toArray();
-        $num=count($d);
         
-
         if (isset($_SERVER["REQUEST_METHOD"]) && ($_SERVER["REQUEST_METHOD"] == "POST")) {
             $receiver_code = test_input($_POST["receiver_code"]);
             $callsign_code = test_input($_POST["callsign_code"]);
-            // echo $file_output." hi"."</br>";
         }
-
-        echo "Hello Piee";
-        echo "\n";
-        echo count($d);
-
-
+        
         function test_input($data) {
             $data = trim($data); //removes whitespace and other predefined characters from both sides of a string
             $data = stripslashes($data); //removes backslashes added by the addslashes() function
             $data = htmlspecialchars($data); //converts some predefined characters to HTML entities
             return $data;
         }
+        ?>
 
-    ?>
-
-
-    <?php echo $num+3 ; ?>
-    <?php //echo $d[row][col] ; ?>
-    <?php echo $d[1][2] ; ?>
-    <?php echo $d[3][2] ; ?>
-    </br>
-    <?php 
-        // for ($row=0; $row<$num; $row++){
-        //     echo $d[$row][4];
-        // }
-    ?>
-    </br>
-    <?php 
-        // for ($row=0; $row<$num; $row++){
-        //     for ($col=0; $col<12; $col++)
-        //     echo $d[$row][$col];
-        // }
-    ?>
- 
-
-
-    <div class="container">
-        <br/>
-        <form role="form" class="container" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
-            <div class="card">
-                <div class="jumbotron text-center" >
-                    <h2><span><img src="cart.png" alt="Cart Icon" width="75" height="75" style="margin-right: 25px;"></span>Export Booking Excel to Coprar Converter</h2>
-                </div>
-
-                <div class="card-body">
-                    <!-- Receiver and Callsign Code-->
-                    <div class="form-group">
-                        <label for="receiver_code">Receiver Code:</label>
-                        <input class="form-control" id="receiver_code" name="receiver_code" type="text" placeholder="Enter Receiver Code" value="<?php echo $receiver_code;?>">
-                    </div>
-                    <br/>
-                    <div class="form-group">
-                        <label for="callsign_code">Callsign Code:</label>
-                        <input class="form-control" id="callsign_code"  name="callsign_code" type="text" placeholder="Enter Callsign Code" value="<?php echo $callsign_code;?>">
-                    </div>
-                    <br/>
-
-                    <!-- Upload excel file -->
-                    <!-- <div>Export booking excel file:</div>
-                    <a href="sample.xlsx" download>sample.xlsx</a>
-                    <div><button type="submit" class="btn btn-primary">Submit</button></div>
-                </div> -->
-
-                    <div>
-                        <!-- <label>Choose Excel File: </label> <input type="file" name="file" id="file" accept=".xls,.xlsx"> -->
-                        <button type="submit" id="submit" name="submit" class="btn-submit">Submit</button>
-                    </div>
-                    </br>
-
-                    <!-- <div class="form-group"><textarea class="form-control" rows="10" cols="20" id='file_output' name="file_output"><?php echo $file_output ; ?></textarea></div> -->
-            </div>
-        </form>
-    </div>
-    <footer class="mastfoot mt-auto text-center">
-        <div class="inner " style="padding-top: 20px; ">
-            <p> Muhammad Syazwan | August 2021 | Source Code: <a href="https://github.com/syaz131/To-Coprar" target="_blank"><i class="fa fa-github"></i> To Coprar</a> | <a href="https://westports.github.io/ETP/" target="_blank">To Coprar JS Vers</a></p>
-        </div>
-    </footer>
-
-    <!-- Create Coprar Edi -->
-    <?php
+        <!-- Create Coprar Edi -->
+        <?php
         $line = $contcount = 0;
         $refno = get_date_str("");
         $edi = "UNB+UNOA:2+KMT+". $receiver_code. "+". get_date_str("daterawonly"). ":". get_date_str("timetominrawonly"). "+". $refno. "'\n";
@@ -163,7 +89,7 @@
         for ($singleRow=0; $singleRow<$numRow; $singleRow++){
             if (isset($d[$singleRow])) {
                 $rowCells = $d[$singleRow];
-                
+
                 if ($singleRow > 7) {
                     $contcount++;
                     
@@ -309,7 +235,51 @@
     ?>
 
 
-<div class="form-group"><textarea class="form-control" rows="10" cols="20" id='file_output' name="file_output"><?php echo $file_output ; ?></textarea></div>
+<div class="container">
+    <br/>
+    <form role="form" class="container" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+        <div class="card">
+            <div class="jumbotron text-center" >
+                <h2><span><img src="cart.png" alt="Cart Icon" width="75" height="75" style="margin-right: 25px;"></span>Export Booking Excel to Coprar Converter</h2>
+                </div>
+
+                <div class="card-body">
+                    <!-- Receiver and Callsign Code-->
+                    <div class="form-group">
+                        <label for="receiver_code">Receiver Code:</label>
+                        <input class="form-control" id="receiver_code" name="receiver_code" type="text" placeholder="Enter Receiver Code" value="<?php echo $receiver_code;?>">
+                    </div>
+                    <br/>
+                    <div class="form-group">
+                        <label for="callsign_code">Callsign Code:</label>
+                        <input class="form-control" id="callsign_code"  name="callsign_code" type="text" placeholder="Enter Callsign Code" value="<?php echo $callsign_code;?>">
+                    </div>
+                    <br/>
+
+                    <!-- Upload excel file -->
+                    <!-- <div>Export booking excel file:</div>
+                    <a href="sample.xlsx" download>sample.xlsx</a>
+                    <div><button type="submit" class="btn btn-primary">Submit</button></div>
+                    </div> -->
+
+                    <div>
+                        <!-- <label>Choose Excel File: </label> <input type="file" name="file" id="file" accept=".xls,.xlsx"> -->
+                        <button type="submit" id="submit" name="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                    </br>
+                    </br>
+                    <label for="file_output">COPRAR EDI Result:</label>
+                    <div class="form-group"><textarea class="form-control" rows="12" cols="20" id='file_output' name="file_output"><?php echo $file_output ; ?></textarea></div>
+            </div>
+        </form>
+    </div>
+    <footer class="mastfoot mt-auto text-center">
+        <div class="inner " style="padding-top: 20px; ">
+            <p> Muhammad Syazwan | August 2021 | Source Code: <a href="https://github.com/syaz131/To-Coprar" target="_blank"><i class="fa fa-github"></i> To Coprar</a> | <a href="https://westports.github.io/ETP/" target="_blank">To Coprar JS Vers</a></p>
+        </div>
+    </footer>
+
+    
 
     <!-- Upload Excel File  -->
     <?php
@@ -328,15 +298,7 @@
     //     else 
     //       {  $receiver_code = $_POST["receiver_code"];}
         
-    // }
-    
-
-    echo "<h4>Your Input:</h4>";
-    echo $receiver_code;
-    echo "</br>";
-    echo $callsign_code;
-
-    
+    // }    
 
     //=================================
 
