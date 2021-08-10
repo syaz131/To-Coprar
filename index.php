@@ -31,7 +31,7 @@
                 
                 $file = $_FILES["file"]["tmp_name"];
                 // echo "</br>--------</br>";
-                // echo $file;
+                // echo "file: ". $file;
                 // echo "</br>--------</br>";
             }
 
@@ -54,7 +54,10 @@
                 //Process Header
                 $report_dt = $voyage = $vslname = $callsign = $opr = "";
                 $numRow = count($allRows);
-
+                //suspecting prob here
+                // echo "</br>--------</br>";
+                // echo "numRow: ". $numRow;
+                // echo "</br>--------</br>";
                 for ($singleRow=0; $singleRow<$numRow; $singleRow++){
                     if ($singleRow > 6) break;
                     $rowCells = $allRows[$singleRow];
@@ -87,6 +90,10 @@
                 $line++;
 
                 $tmp = $dim = "";
+                // suspecting prob here
+                // echo "</br>--------</br>";
+                // echo "numRow: ". $numRow;
+                // echo "</br>--------</br>";
                 for ($singleRow=0; $singleRow<$numRow; $singleRow++){
                     if (isset($allRows[$singleRow])) {
                         $rowCells = $allRows[$singleRow];
