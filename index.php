@@ -29,7 +29,6 @@
                 $receiver_code = test_input($_POST["receiver_code"]);
                 $callsign_code = test_input($_POST["callsign_code"]);
                 
-                // $file = $_FILES["file"]["name"];
                 $file = $_FILES["file"]["tmp_name"];
                 // echo "</br>--------</br>";
                 // echo $file;
@@ -39,9 +38,6 @@
             if ($file != ""){
                 $spreadsheet = $reader->load($file);
                 // $spreadsheet = $reader->load("sample.xlsx");
-                // echo "</br>--------</br>";
-                // echo isset($spreadsheet) ;
-                // echo "</br>--------</br>";
                 $allRows=$spreadsheet->getSheet(0)->toArray();
             }            
         ?>
@@ -285,7 +281,9 @@
 
                         <!-- Upload excel file -->
                         <div>
-                            <label>Choose Excel File: </label></br><input type="file" name="file" id="file" accept=".xls,.xlsx"></br></br>
+                            <label>Choose Excel File: </label></br>
+                            <input type="file" name="file" id="file" accept=".xls,.xlsx"></br>
+                            <a href="sample.xlsx" download>sample.xlsx</a></br></br>
                             <button type="submit" id="submit" name="submit" class="btn btn-primary">Submit</button>
                         </div>
                         </br></br>
